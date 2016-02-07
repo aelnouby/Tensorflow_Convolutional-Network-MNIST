@@ -9,7 +9,7 @@ import matplotlib.cm as cm
 num_lables=10
 image_size=28
 
-learning_rate=1e-3
+learning_rate=1e-2
 batch_size=50
 
 #Read Data
@@ -32,7 +32,7 @@ labels=(np.arange(10)==labels[:,None]).astype(np.float32)
 # print(display(images[22]))
 
 #Splitting into training and validation
-validation_size=1
+validation_size=2000
 
 training_data=images[validation_size:]
 training_labels=labels[validation_size:]
