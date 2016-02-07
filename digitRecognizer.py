@@ -9,13 +9,13 @@ import matplotlib.cm as cm
 num_lables=10
 image_size=28
 
-learning_rate=1e-2
+learning_rate=1e-3
 batch_size=50
 
 #Read Data
-data=pd.read_csv('../input/train.csv',header=0)
+data=pd.read_csv('train.csv',header=0)
 
-test=pd.read_csv('../input/test.csv',header=0)
+test=pd.read_csv('test.csv',header=0)
 
 
 images=np.array(data.drop('label',axis=1)).astype(np.float32)
@@ -24,7 +24,6 @@ labels=np.array(data.label).astype(np.float32)
 
 labels=(np.arange(10)==labels[:,None]).astype(np.float32)
 
-test=np.array(test).astype(np.float32)
 
 # def display(img):
 #     dis=img.reshape(image_size,image_size)
@@ -33,7 +32,7 @@ test=np.array(test).astype(np.float32)
 # print(display(images[22]))
 
 #Splitting into training and validation
-validation_size=2000
+validation_size=1
 
 training_data=images[validation_size:]
 training_labels=labels[validation_size:]
@@ -67,7 +66,7 @@ with graph.as_default():
     tf_train_labels=tf.placeholder(tf.float32,shape=[batch_size,num_lables])
 
     tf_valid_data=tf.constant(validation_data)
-    tf_test_data=tf.constant(test)
+    tf_test_data=tf.placeholder(tf.float32,shape=[batch_size,image_size*image_size])
     # tf_valid_labels=tf.placeholder(tf.float32,shape=[batch_size,num_lables])
 
     layer1_w=weights([5,5,1,32])
@@ -120,7 +119,12 @@ def accuracy(predictions, labels):
 
 
 
-num_steps=3001
+test_data=np.array(pd.read_csv('test.csv',header =0)).astype(np.float32)
+test_data=np.multiply(test_data,1.0/255.0)
+
+predicted_lables = np.zeros(test_data.shape[0])
+
+num_steps=20001
 
 with tf.Session(graph=graph) as session:
 
@@ -150,11 +154,23 @@ with tf.Session(graph=graph) as session:
 
         counter+=1
 
-    test_rslt=test_prediction.eval()
+    # test_rslt=test_prediction.eval()
+    for i in range(0,test_data.shape[0]//batch_size):
+    	rslt=test_prediction.eval(feed_dict={tf_test_data: test_data[i*batch_size : (i+1)*batch_size]})
+    	predicted_lables[i*batch_size : (i+1)*batch_size] = np.argmax(rslt,1)
+
+     	
+
+
+
+
+
+
+
 
 
 np.savetxt('submission_softmax.csv',
-           np.c_[range(1,len(test)+1),test_rslt],
+           np.c_[range(1,len(predicted_lables)+1),predicted_lables],
            delimiter=',',
            header = 'ImageId,Label',
            comments = '',
